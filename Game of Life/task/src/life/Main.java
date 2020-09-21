@@ -1,33 +1,17 @@
 package life;
 
-import java.io.IOException;
 import java.util.Random;
-import java.util.Scanner;
 
 public class Main {
-//    public static char[][] current;
-//    public static char[][] next;
-//    public static int border;
-//    public static Random random;
-//    static final char inhabited = 'O';
-//    static final char empty = ' ';
-//    static int population = 0;
-//    static int generation = 0;
-
 
     public static void main(String[] args) throws InterruptedException {
-        Scanner scanner = new Scanner(System.in);
-        Generation generation = new Generation(scanner.nextInt(), new Random());
+        Generation generation = new Generation();
         // world creation function
-        generation.generate();
+        generation.generate(25, new Random());
         generation.draw();
-        Thread.sleep(1000);
 
-        for (int i = 0; i < 10; i++) {
-            generation.evolve();
-            generation.draw();
-            Thread.sleep(1000L);
-            System.out.println("Generation: " + i);
+        while (true) {
+            generation.run();
         }
     }
 
@@ -36,19 +20,13 @@ public class Main {
 class Generation {
     private char[][] current;
     private char[][] next;
-    private final int border;
-    private final Random seed;
+    private int border;
     final char inhabited = 'O';
     final char empty = ' ';
     private int population = 0;
     private int generation = 0;
     private final GameOfLife field = new GameOfLife();
-
-    public Generation(int border, Random seed) {
-        this.border = border;
-        this.seed = seed;
-
-    }
+    private int state;
 
     private int leap(int direction) {
         if (direction == border) {
@@ -58,7 +36,6 @@ class Generation {
         }
         return direction;
     }
-
 
     public void evolve() {
         int north;
@@ -101,7 +78,8 @@ class Generation {
         generation += 1;
     }
 
-    public void generate() {
+    public void generate(int border, Random seed) {
+        this.border = border;
         current = new char[border][border];
         next = new char[border][border];
         boolean alive;
@@ -113,11 +91,26 @@ class Generation {
                 population = alive ? population + 1 : population;
             }
         }
-        generation += 1;
+        generation = 1;
     }
 
     public void draw() {
         field.draw(generation, population, border, current);
+    }
+
+    public void run() {
+        if (field.getStatus() == GameOfLife.EVOLVE) {
+            this.evolve();
+            this.draw();
+         } else if (field.getStatus() == GameOfLife.RESET) {
+            this.generate(25, new Random());
+            field.setStatus(GameOfLife.EVOLVE);
+        }
+        try {
+            Thread.sleep(1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 //    public void print() {
