@@ -3,51 +3,54 @@ package life;
 import java.io.IOException;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.function.DoubleBinaryOperator;
 
 public class Main {
-    public static char[][] current;
-    public static char[][] next;
-    public static int border;
-    public static Random random;
-    static final char inhabited = 'O';
-    static final char empty = ' ';
-    static int population = 0;
-    static int generation = 0;
+//    public static char[][] current;
+//    public static char[][] next;
+//    public static int border;
+//    public static Random random;
+//    static final char inhabited = 'O';
+//    static final char empty = ' ';
+//    static int population = 0;
+//    static int generation = 0;
 
 
     public static void main(String[] args) throws InterruptedException {
         Scanner scanner = new Scanner(System.in);
-        border = scanner.nextInt();
-//        long seed = scanner.nextLong();
-//        int eons = scanner.nextInt();
-
-        random = new Random();
+        Generation generation = new Generation(scanner.nextInt(), new Random());
         // world creation function
-        generate();
-        print();
+        generation.generate();
+        generation.draw();
         Thread.sleep(1000);
-        clear();
 
         for (int i = 0; i < 10; i++) {
-            evolve();
-            print();
+            generation.evolve();
+            generation.draw();
             Thread.sleep(1000L);
-            clear();
+            System.out.println("Generation: " + i);
         }
     }
 
-    private static void clear() {
-        try {
-            if (System.getProperty("os.name").contains("Windows"))
-                new ProcessBuilder("cmd","/c","cls").inheritIO().start().waitFor();
-            else
-                Runtime.getRuntime().exec("clear");
-        }
-        catch (InterruptedException | IOException e) {}
+}
+
+class Generation {
+    private char[][] current;
+    private char[][] next;
+    private final int border;
+    private final Random seed;
+    final char inhabited = 'O';
+    final char empty = ' ';
+    private int population = 0;
+    private int generation = 0;
+    private final GameOfLife field = new GameOfLife();
+
+    public Generation(int border, Random seed) {
+        this.border = border;
+        this.seed = seed;
+
     }
 
-    public static int leap(int direction) {
+    private int leap(int direction) {
         if (direction == border) {
             direction = 0;
         } else if (direction == -1) {
@@ -57,7 +60,7 @@ public class Main {
     }
 
 
-    public static void evolve() {
+    public void evolve() {
         int north;
         int east;
         int south;
@@ -98,14 +101,14 @@ public class Main {
         generation += 1;
     }
 
-    public static void generate() {
+    public void generate() {
         current = new char[border][border];
         next = new char[border][border];
         boolean alive;
 
         for (int i = 0; i < border; i++) {
             for (int j = 0; j < border; j++) {
-                alive = random.nextBoolean();
+                alive = seed.nextBoolean();
                 current[i][j] = alive ? inhabited : empty;
                 population = alive ? population + 1 : population;
             }
@@ -113,22 +116,25 @@ public class Main {
         generation += 1;
     }
 
-    public static void print() {
-        StringBuilder string = new StringBuilder();
-        string.append("Generation #");
-        string.append(generation);
-        string.append('\n');
-        string.append("Alive: ");
-        string.append(population);
-        string.append("\n\n");
-        for (int i = 0; i < border; i++) {
-            for (int j = 0; j < border; j++) {
-                string.append(current[i][j]);
-//                System.out.print(current[i][j]);
-            }
-//            System.out.println();
-            string.append('\n');
-        }
-        System.out.println(string);
+    public void draw() {
+        field.draw(generation, population, border, current);
     }
+
+//    public void print() {
+//        StringBuilder string = new StringBuilder();
+//        string.append("Generation #");
+//        string.append(generation);
+//        string.append('\n');
+//        string.append("Alive: ");
+//        string.append(population);
+//        string.append("\n\n");
+//        for (int i = 0; i < border; i++) {
+//            for (int j = 0; j < border; j++) {
+//                string.append(current[i][j]);
+////                System.out.print(current[i][j]);
+//            }
+////            System.out.println();
+//            string.append('\n');
+//        }
+//        System.out.println(string);
 }
